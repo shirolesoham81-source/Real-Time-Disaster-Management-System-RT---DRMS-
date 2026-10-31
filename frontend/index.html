@@ -1,0 +1,1666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pune City Disaster Relief Management (RT-DRMS)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/leaflet.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+    <!-- Toast Notifications -->
+    <div id="toast-container"></div>
+
+    <!-- Modal -->
+    <div id="modal-container" class="modal-overlay hidden">
+        <div class="modal-content" id="modal-body"></div>
+    </div>
+
+    <!-- 1. LANDING PAGE / ROLE SELECTION -->
+    <div id="landing-view" class="view-section active">
+        <div class="landing-header">
+            <div class="landing-badge">
+                <i class="fas fa-shield-alt"></i> Pune Operations Sector • Maharashtra, India
+            </div>
+            <h1>DISASTER RELIEF OPERATIONS SYSTEM</h1>
+            <h2>Real-Time Emergency Request & Dispatch Command (RT-DRMS)</h2>
+            <p>Coordinate citywide emergency triage, field squad telemetry, logistics distribution, and citizen distress assistance across Pune Municipal Corporation & PCMC sectors.</p>
+        </div>
+        <div class="role-selection">
+            <div class="role-card" data-role="people" tabindex="0" role="button" aria-label="People Portal">
+                <div class="role-card-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h2>CITIZEN PORTAL</h2>
+                <p>Request urgent rescue assistance, track assigned responder units, and locate verified relief shelters across Pune.</p>
+                <div class="role-card-btn">
+                    <span>Enter Citizen Portal</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+            <div class="role-card" data-role="management" tabindex="0" role="button" aria-label="Command Center">
+                <div class="role-card-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h2>COMMAND CENTER</h2>
+                <p>Coordinate emergency priority queues (Max-Heap), dispatch rescue teams, manage resources, and oversee operations.</p>
+                <div class="role-card-btn">
+                    <span>Launch Command Center</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+            <div class="role-card" data-role="team-leader" tabindex="0" role="button" aria-label="Field Squad Operations">
+                <div class="role-card-icon">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <h2>FIELD SQUAD LEADER</h2>
+                <p>Execute live field directives, navigate to distress coordinates, update mission progress, and transmit squad telemetry.</p>
+                <div class="role-card-btn">
+                    <span>Squad Check-in</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+        </div>
+        <div class="landing-footer">
+            <div class="landing-footer-item">
+                <i class="fas fa-circle text-success" style="font-size:8px;"></i>
+                <span>C++ Core Engine Online</span>
+            </div>
+            <span>•</span>
+            <div class="landing-footer-item">
+                <i class="fas fa-map-marker-alt text-accent"></i>
+                <span>Zone: Pune Municipal Corporation (PMC & PCMC)</span>
+            </div>
+            <span>•</span>
+            <div class="landing-footer-item">
+                <i class="fas fa-satellite text-warning"></i>
+                <span>GPS Telemetry: W3C Geolocation Active</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Backdrop for Mobile Overlay -->
+    <div id="sidebar-backdrop"></div>
+
+    <!-- 2. MAIN APP LAYOUT -->
+    <div id="app-layout" class="hidden">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-brand">
+                    <div class="sidebar-brand-icon"><i class="fas fa-shield-alt"></i></div>
+                    <div class="sidebar-brand-text">
+                        <span>RT-DRMS Pune</span>
+                        <small>Emergency Ops</small>
+                    </div>
+                </div>
+            </div>
+            <ul class="sidebar-nav" id="sidebar-nav">
+                <!-- Nav items injected by app.js -->
+            </ul>
+            <div class="sidebar-footer">
+                <button id="btn-reset-demo" class="btn btn-secondary btn-sm mb-1" style="width:100%;"><i class="fas fa-redo"></i> <span>Reset Demo Data</span></button>
+                <button id="btn-logout" class="btn btn-danger btn-sm" style="width:100%;"><i class="fas fa-sign-out-alt"></i> <span>Exit Role</span></button>
+            </div>
+        </aside>
+
+        <!-- Main Area -->
+        <main id="main-wrapper">
+            <header id="topbar">
+                <div class="topbar-left">
+                    <button id="mobile-menu-toggle" class="topbar-toggle-btn" aria-label="Toggle Navigation Menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <button id="desktop-menu-toggle" class="topbar-toggle-btn" title="Toggle Compact Sidebar" aria-label="Toggle Compact Sidebar">
+                        <i class="fas fa-bars-staggered"></i>
+                    </button>
+                    <div class="topbar-heading-group">
+                        <div class="topbar-breadcrumb" id="topbar-breadcrumb">
+                            <span>RT-DRMS</span>
+                            <i class="fas fa-chevron-right"></i>
+                            <span id="breadcrumb-role">Portal</span>
+                            <i class="fas fa-chevron-right"></i>
+                            <span id="breadcrumb-page" class="active">Overview</span>
+                        </div>
+                        <div id="topbar-title">Dashboard</div>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <div class="system-status-pill" id="backend-status-pill" title="C++ Core & HTTP Bridge Connectivity">
+                        <span class="system-status-dot"></span>
+                        <span>Bridge Online</span>
+                    </div>
+                    <span id="role-badge" class="badge">ROLE</span>
+                </div>
+            </header>
+
+            <div id="content-area" class="content-area">
+
+                <!-- ========================================== -->
+                <!-- PEOPLE VIEWS                               -->
+                <!-- ========================================== -->
+
+                <!-- People Home -->
+                <section id="view-people-home" class="page-view hidden">
+                    <!-- Urgent Assistance Hero Banner -->
+                    <div class="card mb-3" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color:#ffffff; border:none; padding:26px 28px; border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); position:relative; overflow:hidden;">
+                        <div style="position:relative; z-index:2; max-width:760px;">
+                            <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(220, 38, 38, 0.2); border:1px solid rgba(239, 68, 68, 0.4); color:#fca5a5; padding:4px 12px; border-radius:var(--radius-full); font-size:11.5px; font-weight:700; text-transform:uppercase; margin-bottom:12px;">
+                                <i class="fas fa-exclamation-circle"></i> Immediate Disaster Assistance
+                            </div>
+                            <h2 style="color:#ffffff; font-size:1.75rem; margin-bottom:8px; font-weight:800; letter-spacing:-0.02em;">Need Urgent Relief or Medical Rescue?</h2>
+                            <p style="color:#cbd5e1; font-size:0.95rem; line-height:1.5; margin-bottom:20px;">If your life is in immediate danger or you need emergency evacuation, food rations, drinking water, or medical kits in Pune, report your distress call immediately.</p>
+                            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                                <button class="btn btn-danger btn-large" style="width:auto; padding:12px 24px;" onclick="App.navigate('people-emergency')">
+                                    <i class="fas fa-exclamation-triangle"></i> Report Critical Emergency Now
+                                </button>
+                                <button class="btn btn-primary" style="padding:12px 22px; font-size:14px;" onclick="App.navigate('people-create')">
+                                    <i class="fas fa-hand-holding-heart"></i> Submit Relief Request
+                                </button>
+                                <button class="btn btn-secondary" style="padding:12px 20px; font-size:14px; background:rgba(255,255,255,0.1); color:#ffffff; border-color:rgba(255,255,255,0.2);" onclick="App.navigate('people-map')">
+                                    <i class="fas fa-map-marked-alt"></i> Citizen Relief Map
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instant Status Tracking Bar -->
+                    <div class="card mb-3" style="border-left:4px solid var(--accent);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                            <div>
+                                <h3 style="margin:0; font-size:15px; color:var(--primary);"><i class="fas fa-search-location text-accent"></i> Fast Request Status Lookup</h3>
+                                <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--text-muted);">Enter your 10-digit registered phone number or Request ID to check rescue unit progress.</p>
+                            </div>
+                            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                                <input type="text" id="home-quick-track-input" class="form-control" placeholder="Request ID or 10-digit Phone" style="width:230px; font-size:13px; height:38px;">
+                                <button class="btn btn-primary btn-sm" style="height:38px; padding:0 18px;" onclick="
+                                    const val = (document.getElementById('home-quick-track-input').value || '').trim();
+                                    if(val) {
+                                        App.navigate('people-track');
+                                        if(/^\d{10}$/.test(val)) {
+                                            document.getElementById('track-phone').value = val;
+                                        } else {
+                                            document.getElementById('track-id').value = val;
+                                        }
+                                        document.getElementById('form-track').dispatchEvent(new Event('submit'));
+                                    } else {
+                                        App.navigate('people-track');
+                                    }
+                                ">
+                                    <i class="fas fa-search"></i> Check Status
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Relief Operational Statistics -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <div>
+                            <h3 style="margin:0; font-size:15px;"><i class="fas fa-chart-pie text-primary"></i> Pune Relief Operations Summary</h3>
+                            <p style="margin:2px 0 0 0; font-size:12px; color:var(--text-muted);">Real-time dispatch status verified across Pune disaster relief coordination channels.</p>
+                        </div>
+                    </div>
+
+                    <div id="people-home-stats" class="dashboard-grid">
+                        <!-- Stats injected via JS -->
+                    </div>
+
+                    <!-- Action Directives Grid -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; margin-bottom:12px;">
+                        <h3 style="margin:0; font-size:15px;"><i class="fas fa-th-large text-accent"></i> Relief Services & Directives</h3>
+                    </div>
+                    <div class="dashboard-grid">
+                        <div class="card stat-card clickable" onclick="App.navigate('people-create')" style="border-top-color:var(--accent);">
+                            <i class="fas fa-arrow-right stat-card-arrow"></i>
+                            <div style="font-size:1.5rem; color:var(--accent); margin-bottom:8px;"><i class="fas fa-plus-circle"></i></div>
+                            <h3 style="color:var(--primary); font-size:14px; text-transform:none; margin-bottom:4px;">Create Relief Request</h3>
+                            <p style="font-size:12.5px; color:var(--text-muted); margin:0;">Request essential supplies like drinking water, food packets, medical kits, and blankets.</p>
+                        </div>
+                        <div class="card stat-card clickable" onclick="App.navigate('people-emergency')" style="border-top-color:var(--danger);">
+                            <i class="fas fa-arrow-right stat-card-arrow"></i>
+                            <div style="font-size:1.5rem; color:var(--danger); margin-bottom:8px;"><i class="fas fa-exclamation-triangle"></i></div>
+                            <h3 style="color:var(--danger); font-size:14px; text-transform:none; margin-bottom:4px;">Report Critical Emergency</h3>
+                            <p style="font-size:12.5px; color:var(--text-muted); margin:0;">Dispatch highest-priority life rescue teams for trapped individuals or building collapses.</p>
+                        </div>
+                        <div class="card stat-card clickable" onclick="App.navigate('people-map')" style="border-top-color:#6366f1;">
+                            <i class="fas fa-arrow-right stat-card-arrow"></i>
+                            <div style="font-size:1.5rem; color:#6366f1; margin-bottom:8px;"><i class="fas fa-map-marked-alt"></i></div>
+                            <h3 style="color:var(--primary); font-size:14px; text-transform:none; margin-bottom:4px;">Citizen Disaster Map</h3>
+                            <p style="font-size:12.5px; color:var(--text-muted); margin:0;">View active distress coordinates, assigned rescue squads, and verified Pune staging shelters.</p>
+                        </div>
+                        <div class="card stat-card clickable" onclick="App.navigate('people-centers')" style="border-top-color:var(--success);">
+                            <i class="fas fa-arrow-right stat-card-arrow"></i>
+                            <div style="font-size:1.5rem; color:var(--success); margin-bottom:8px;"><i class="fas fa-campground"></i></div>
+                            <h3 style="color:var(--primary); font-size:14px; text-transform:none; margin-bottom:4px;">Relief Centers & Shelters</h3>
+                            <p style="font-size:12.5px; color:var(--text-muted); margin:0;">Find verified municipal emergency staging hubs, transit shelters, and food distribution camps.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Citizen Map -->
+                <section id="view-people-map" class="page-view hidden">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                        <div>
+                            <h2><i class="fas fa-map-marked-alt text-primary"></i> Citizen Disaster & Relief Map <span class="badge" style="background:var(--accent); color:#fff; font-size:11px; vertical-align:middle; margin-left:6px;">Pune Operations Sector</span></h2>
+                            <p>Plot your active relief requests, track assigned squads in real-time, and locate nearby staging hubs.</p>
+                        </div>
+                        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                            <div style="display:flex; gap:4px; align-items:center;">
+                                <select id="citizen-locality-select" class="form-control" style="font-size:12px; height:34px; width:155px; padding:4px 8px;" onchange="CitizenMap.panToLocality(this.value)">
+                                    <option value="">Jump to Locality...</option>
+                                    <option value="pune_center">Pune City Center</option>
+                                    <option value="shivajinagar">Shivajinagar</option>
+                                    <option value="swargate">Swargate</option>
+                                    <option value="kothrud">Kothrud</option>
+                                    <option value="hadapsar">Hadapsar</option>
+                                    <option value="baner">Baner / Balewadi</option>
+                                    <option value="pimpri">Pimpri</option>
+                                    <option value="chinchwad">Chinchwad</option>
+                                    <option value="station">Pune Station Vicinity</option>
+                                    <option value="yerawada">Yerawada</option>
+                                </select>
+                            </div>
+                            <div style="display:flex; gap:4px; align-items:center;">
+                                <input type="tel" id="citizen-map-phone-input" class="form-control" placeholder="10-digit phone" maxlength="10" style="width:130px; padding:6px 10px; font-size:12px; height:34px;">
+                                <button class="btn btn-primary btn-sm" onclick="CitizenMap.loadCitizenData()" title="Search requests for this phone">
+                                    <i class="fas fa-search"></i> My Requests
+                                </button>
+                            </div>
+                            <button class="btn btn-secondary btn-sm" onclick="CitizenMap.fitBounds()" title="Fit map to all markers">
+                                <i class="fas fa-expand-arrows-alt"></i> Fit Bounds
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="CitizenMap.refreshData()" title="Refresh map data">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Citizen Alert Bar -->
+                    <div id="citizen-map-alert" style="display:none;" class="alert mb-2"></div>
+
+                    <div class="map-layout-grid">
+                        <!-- Main Map Column -->
+                        <div class="map-viewport-wrapper">
+                            <div id="citizen-interactive-map" style="height:540px; width:100%; border-radius:var(--radius); border:1px solid #cbd5e1; box-shadow:var(--shadow);"></div>
+                            <div class="map-legend-card mt-1">
+                                <strong style="font-size:12px; color:var(--primary);"><i class="fas fa-map-signs text-accent"></i> Citizen Map Markers:</strong>
+                                <div class="map-legend-grid">
+                                    <div class="legend-item"><span class="legend-icon" style="background:#e74c3c;"></span> Critical / Urgent Incident</div>
+                                    <div class="legend-item"><span class="legend-icon" style="background:#3498db;"></span> Normal / Active Incident</div>
+                                    <div class="legend-item"><span class="legend-icon" style="background:#28a745;"></span> Assigned Rescue Squad (Live GPS)</div>
+                                    <div class="legend-item"><span class="legend-icon" style="background:#e67e22;"></span> Assigned Squad (Stale Signal)</div>
+                                    <div class="legend-item"><span class="legend-icon" style="background:#ffc107;"></span> Assigned Squad (Simulated)</div>
+                                    <div class="legend-item"><span class="legend-icon" style="background:#6c757d;"></span> Squad Not Sharing GPS</div>
+                                    <div class="legend-item"><span class="legend-icon" style="background:#8e44ad;"></span> Verified Relief Shelter (Pune)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Side Panel Column -->
+                        <div class="map-sidebar-panel">
+                            <div id="citizen-map-detail-panel">
+                                <!-- Injected via JS -->
+                            </div>
+
+                            <div class="card mt-2">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                    <h3 style="margin:0; font-size:14px;"><i class="fas fa-campground text-accent"></i> Relief Centers & Shelters</h3>
+                                    <span id="citizen-center-count" class="badge" style="background:#34495e; color:#fff;">3</span>
+                                </div>
+                                <p class="text-muted" style="font-size:11px; margin-bottom:8px;">
+                                    Verified Pune municipal emergency shelters are plotted on the map. Legacy graph staging hubs without GPS coordinates are listed below without fabricated map pins.
+                                </p>
+                                <div id="citizen-centers-list" style="max-height:220px; overflow-y:auto;">
+                                    <!-- Injected via JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Create Request -->
+                <section id="view-people-create" class="page-view hidden">
+                    <div class="card" style="max-width: 860px; margin: 0 auto; border-top: 4px solid var(--accent);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px;">
+                            <div>
+                                <h2 style="margin:0;"><i class="fas fa-hand-holding-heart text-accent"></i> Submit Relief Request</h2>
+                                <p style="color:var(--text-muted); font-size:12.5px; margin:3px 0 0 0;">Fill in this structured form to dispatch essential aid and rescue squads in Pune.</p>
+                            </div>
+                            <span class="badge" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">
+                                <i class="fas fa-map-marker-alt"></i> Pune Operations Sector
+                            </span>
+                        </div>
+
+                        <!-- Form Stepper Navigation Progress Bar -->
+                        <div class="form-stepper">
+                            <div class="stepper-step active">
+                                <span class="stepper-num">1</span>
+                                <span>Contact & Location</span>
+                            </div>
+                            <div class="stepper-divider"></div>
+                            <div class="stepper-step active">
+                                <span class="stepper-num">2</span>
+                                <span>Urgency & Type</span>
+                            </div>
+                            <div class="stepper-divider"></div>
+                            <div class="stepper-step">
+                                <span class="stepper-num">3</span>
+                                <span>Demographics</span>
+                            </div>
+                            <div class="stepper-divider"></div>
+                            <div class="stepper-step">
+                                <span class="stepper-num">4</span>
+                                <span>Supplies</span>
+                            </div>
+                            <div class="stepper-divider"></div>
+                            <div class="stepper-step">
+                                <span class="stepper-num">5</span>
+                                <span>Map & Access</span>
+                            </div>
+                        </div>
+
+                        <!-- Demonstration Scenarios Quick-Fill Banner -->
+                        <div class="alert alert-info" style="margin-bottom:18px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; width:100%;">
+                                <div>
+                                    <strong style="color:var(--primary); font-size:13px;"><i class="fas fa-vial text-accent"></i> Pune Demonstration Disaster Scenarios</strong>
+                                    <p style="margin:2px 0 0; font-size:11.5px; color:#555;">Quick-fill realistic simulated Pune emergency situations for testing and operational demonstrations:</p>
+                                </div>
+                                <select id="select-demo-scenario" class="form-control" style="width:260px; font-size:12px; height:34px; font-weight:600;" onchange="PeopleApp.fillDemoScenario(this.value)">
+                                    <option value="">-- Select Demonstration Scenario --</option>
+                                    <option value="scenario_sinhagad_flood">Sinhagad Rd Mula-Mutha Flood</option>
+                                    <option value="scenario_pulgate_medical">Pulgate Swargate Medical Distress</option>
+                                    <option value="scenario_bopodi_water">Bopodi / Khadki Slum Waterlogging</option>
+                                    <option value="scenario_hadapsar_evac">Hadapsar Industrial Flash Flooding</option>
+                                    <option value="scenario_kothrud_landslide">Kothrud ARAI Hillock Slips</option>
+                                    <option value="scenario_pimpri_bridge">Pimpri Pawana Overflow Submersion</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <form id="form-create-request" class="mt-2">
+                            <div class="detail-grid">
+                                <!-- Step 1: Essential Contact & Location Information -->
+                                <div class="form-section-header">
+                                    <i class="fas fa-address-card text-accent"></i> Step 1: Citizen Contact & Location Details <small class="text-danger" style="margin-left:auto;">* Required Fields</small>
+                                </div>
+                                <div class="form-group">
+                                    <label>Full Name <span class="text-danger">*</span></label>
+                                    <input type="text" name="name" class="form-control" placeholder="e.g. Ramesh Deshmukh" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Phone Number (10 Digits) <span class="text-danger">*</span></label>
+                                    <input type="tel" name="phone" class="form-control" placeholder="e.g. 9876543210" maxlength="10" required>
+                                    <small class="text-muted">Used for request authorization and tracking verification</small>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Area / Locality / Street Address <span class="text-danger">*</span></label>
+                                    <input type="text" name="location" class="form-control" placeholder="e.g. Near Dandekar Bridge, Sinhagad Road, Pune" required>
+                                </div>
+
+                                <!-- Step 2: Emergency Urgency & Disaster Classification -->
+                                <div class="form-section-header">
+                                    <i class="fas fa-exclamation-circle text-danger"></i> Step 2: Disaster Type & Urgency Level <small class="text-danger" style="margin-left:auto;">* Required Fields</small>
+                                </div>
+                                <div class="form-group">
+                                    <label>Disaster Classification <span class="text-danger">*</span></label>
+                                    <select name="disaster" class="form-control" required>
+                                        <option value="Flood">Flood / Waterlogging</option>
+                                        <option value="Earthquake">Earthquake / Tremors</option>
+                                        <option value="Fire">Fire Hazard</option>
+                                        <option value="Cyclone">Cyclone / Gale Winds</option>
+                                        <option value="Landslide">Landslide / Hill Slip</option>
+                                        <option value="Other">Other Distress</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Primary Relief Assistance Type <span class="text-danger">*</span></label>
+                                    <select name="type" class="form-control" required>
+                                        <option value="Food">Food Assistance</option>
+                                        <option value="Water">Drinking Water</option>
+                                        <option value="Medical">Medical Aid</option>
+                                        <option value="Shelter">Shelter Evacuation</option>
+                                        <option value="Rescue">Life Rescue Operation</option>
+                                        <option value="Other">Other Support</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Total People Affected <span class="text-danger">*</span></label>
+                                    <input type="number" name="people" class="form-control" min="1" value="1" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Urgency / Severity Level <span class="text-danger">*</span></label>
+                                    <select name="severity" class="form-control" required>
+                                        <option value="NORMAL">Normal — Routine Assistance Needed</option>
+                                        <option value="HIGH">High — Severe Impact / High Risk</option>
+                                        <option value="CRITICAL">Critical — Immediate Life Threat (Max Priority)</option>
+                                    </select>
+                                </div>
+
+                                <!-- Step 3: Affected Population Breakdown -->
+                                <div class="form-section-header">
+                                    <i class="fas fa-users text-primary"></i> Step 3: Affected Population Demographics <small style="margin-left:auto;">(Optional / If known)</small>
+                                </div>
+                                <div class="form-group">
+                                    <label>Number of Families</label>
+                                    <input type="number" name="familiesCount" class="form-control" min="0" placeholder="0 if unknown">
+                                </div>
+                                <div class="form-group">
+                                    <label>Number of Children (&lt; 12 yrs)</label>
+                                    <input type="number" name="childrenCount" class="form-control" min="0" placeholder="0 if unknown">
+                                </div>
+                                <div class="form-group">
+                                    <label>Number of Elderly People (&gt; 60 yrs)</label>
+                                    <input type="number" name="elderlyCount" class="form-control" min="0" placeholder="0 if unknown">
+                                </div>
+                                <div class="form-group">
+                                    <label>Number of Injured / Unwell People</label>
+                                    <input type="number" name="injuredCount" class="form-control" min="0" placeholder="0 if unknown">
+                                </div>
+
+                                <!-- Step 4: Required Relief Supplies -->
+                                <div class="form-section-header">
+                                    <i class="fas fa-boxes text-accent"></i> Step 4: Required Relief Supplies & Quantities <small style="margin-left:auto;">(Optional / If needed)</small>
+                                </div>
+                                <div class="form-group">
+                                    <label>Emergency Food Packets (Count)</label>
+                                    <input type="number" name="foodPackets" class="form-control" min="0" placeholder="e.g. 25">
+                                </div>
+                                <div class="form-group">
+                                    <label>Clean Drinking Water (Litres)</label>
+                                    <input type="number" name="waterLitres" class="form-control" min="0" placeholder="e.g. 50">
+                                </div>
+                                <div class="form-group">
+                                    <label>First-Aid / Medical Kits (Count)</label>
+                                    <input type="number" name="medicalKits" class="form-control" min="0" placeholder="e.g. 3">
+                                </div>
+                                <div class="form-group">
+                                    <label>Blankets & Dry Sheets (Count)</label>
+                                    <input type="number" name="blankets" class="form-control" min="0" placeholder="e.g. 10">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Other Specialized Supplies (with quantity & unit)</label>
+                                    <input type="text" name="otherSupplies" class="form-control" placeholder="e.g. 5 baby formula tins, 2 tarpaulin sheets, emergency flashlights">
+                                </div>
+
+                                <!-- Step 5: Map Location Picker & Access Directions -->
+                                <div class="form-section-header">
+                                    <i class="fas fa-map-marked-alt text-success"></i> Step 5: Destination Coordinates & Rescue Access <small style="margin-left:auto;">(Recommended)</small>
+                                </div>
+
+                                <div class="form-group full-width">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+                                        <label style="margin:0;"><strong><i class="fas fa-crosshairs text-accent"></i> Pinpoint Location on Pune Map:</strong> <small class="text-muted">(Click map or drag marker)</small></label>
+                                        <div style="display:flex; gap:6px; align-items:center;">
+                                            <select id="picker-locality-jump" class="form-control" style="font-size:11.5px; height:30px; width:155px; padding:2px 8px;" onchange="CitizenLocationPicker.selectLocality(this.value)">
+                                                <option value="">Jump to Locality...</option>
+                                                <option value="pune_center">Pune City Center</option>
+                                                <option value="shivajinagar">Shivajinagar</option>
+                                                <option value="swargate">Swargate</option>
+                                                <option value="kothrud">Kothrud</option>
+                                                <option value="hadapsar">Hadapsar</option>
+                                                <option value="baner">Baner / Balewadi</option>
+                                                <option value="pimpri">Pimpri</option>
+                                                <option value="chinchwad">Chinchwad</option>
+                                                <option value="station">Pune Station Vicinity</option>
+                                                <option value="yerawada">Yerawada</option>
+                                            </select>
+                                            <button type="button" id="btn-use-my-location" class="btn btn-secondary btn-sm" onclick="CitizenLocationPicker.useCurrentLocation()">
+                                                <i class="fas fa-location-arrow"></i> My GPS Location
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="request-location-picker-map" style="height:250px; width:100%; border-radius:var(--radius); border:1px solid #cbd5e1; position:relative; overflow:hidden;"></div>
+                                    <div id="picker-status-note" style="font-size:11.5px; color:#64748b; margin-top:6px;">
+                                        <i class="fas fa-info-circle text-accent"></i> Click anywhere on the map or drag the pin. Latitude and Longitude fields below are synced automatically.
+                                    </div>
+                                </div>
+
+                                <div class="form-group full-width">
+                                    <label>Prominent Nearby Landmark</label>
+                                    <input type="text" name="landmark" class="form-control" placeholder="e.g. Near Alka Talkies / Pulgate Bus Stand / Opp. Ward Office">
+                                </div>
+                                <div class="form-group">
+                                    <label>Latitude (Coordinates)</label>
+                                    <input type="number" step="any" name="latitude" id="create-input-lat" class="form-control" placeholder="e.g. 18.5204">
+                                </div>
+                                <div class="form-group">
+                                    <label>Longitude (Coordinates)</label>
+                                    <input type="number" step="any" name="longitude" id="create-input-lon" class="form-control" placeholder="e.g. 73.8567">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Rescue Team Access Directions & Route Notes</label>
+                                    <input type="text" name="directions" class="form-control" placeholder="e.g. Main road waterlogged, enter via back alley behind the primary school">
+                                </div>
+
+                                <!-- Step 6: Situation Notes -->
+                                <div class="form-section-header">
+                                    <i class="fas fa-clipboard-list text-primary"></i> Step 6: Additional Situation Notes
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Situation Details, Water Levels, or Structural Hazards</label>
+                                    <textarea name="details" class="form-control" rows="3" placeholder="Describe current situation, water depth, building safety, special medical needs, or urgent rescue requirements..."></textarea>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary mt-3" style="width:100%; padding:14px; font-size:15px; font-weight:700;">
+                                <i class="fas fa-paper-plane"></i> Submit Relief Request for Triage
+                            </button>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- Report Emergency (Red Theme) -->
+                <section id="view-people-emergency" class="page-view hidden">
+                    <div class="card" style="max-width: 800px; margin: 0 auto; border-top: 5px solid red; background-color:#fff5f5;">
+                        <h2 class="text-danger"><i class="fas fa-exclamation-triangle"></i> REPORT CRITICAL EMERGENCY</h2>
+                        <form id="form-report-emergency" class="mt-2">
+                            <div class="detail-grid">
+                                <div class="form-group">
+                                    <label>Name</label>
+                                    <input type="text" name="name" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Phone Number</label>
+                                    <input type="tel" name="phone" class="form-control" required>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Exact Location</label>
+                                    <input type="text" name="location" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Emergency Type</label>
+                                    <select name="type" class="form-control" required>
+                                        <option value="Person Trapped">Person Trapped</option>
+                                        <option value="Building Collapse">Building Collapse</option>
+                                        <option value="Fire">Fire</option>
+                                        <option value="Flood">Flood (Severe)</option>
+                                        <option value="Serious Injury">Serious Injury</option>
+                                        <option value="Missing Person">Missing Person</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Number of People</label>
+                                    <input type="number" name="people" class="form-control" min="1" required>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Description of Emergency</label>
+                                    <textarea name="details" class="form-control" rows="4" required></textarea>
+                                </div>
+                            </div>
+                            <div class="alert alert-danger mt-1" style="padding:10px; border:1px solid red;">
+                                <b>Priority: CRITICAL</b> - Rescue teams will be dispatched immediately.
+                            </div>
+                            <button type="submit" class="btn btn-danger btn-large mt-2">REPORT EMERGENCY NOW</button>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- My Requests -->
+                <section id="view-people-my-requests" class="page-view hidden">
+                    <div class="card">
+                        <h2>My Requests</h2>
+                        <div class="table-responsive mt-2">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Request ID</th>
+                                        <th>Type</th>
+                                        <th>Location</th>
+                                        <th>Priority</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="people-requests-tbody">
+                                    <!-- Injected via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Track Request -->
+                <section id="view-people-track" class="page-view hidden">
+                    <div class="card" style="max-width: 600px; margin: 0 auto;">
+                        <h2>Track Request Status</h2>
+                        <p style="color:var(--gray-dark); font-size:13px; margin-top:5px;">Enter your Request ID and the registered 10-digit contact phone number for verification.</p>
+                        <form id="form-track" class="mt-2" style="display:flex; flex-direction:column; gap:12px;">
+                            <div>
+                                <label style="font-weight:500; font-size:13px; display:block; margin-bottom:4px;">Request ID</label>
+                                <input type="text" id="track-id" class="form-control" placeholder="e.g. DR-1001" required>
+                            </div>
+                            <div>
+                                <label style="font-weight:500; font-size:13px; display:block; margin-bottom:4px;">Registered Contact Phone (10 Digits)</label>
+                                <input type="tel" id="track-phone" class="form-control" placeholder="e.g. 1234567890" maxlength="10" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="margin-top:5px;"><i class="fas fa-search"></i> Verify & Track Request</button>
+                        </form>
+                        <div id="track-result" class="mt-2">
+                            <!-- Timeline injected via JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Relief Centers -->
+                <section id="view-people-centers" class="page-view hidden">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                        <div>
+                            <h2 style="margin:0;"><i class="fas fa-campground text-accent"></i> Pune Relief Centres and Emergency Shelters</h2>
+                            <p style="color:var(--gray-dark); font-size:13px; margin:3px 0 0 0;">Official civic disaster management shelters and staging hubs across Pune & Pimpri-Chinchwad municipal sectors.</p>
+                        </div>
+                    </div>
+                    <div id="centers-container" class="dashboard-grid mt-2">
+                        <!-- Centers injected via JS -->
+                    </div>
+                </section>
+
+                <!-- Emergency Contacts -->
+                <section id="view-people-contacts" class="page-view hidden">
+                    <h2>Emergency Contacts</h2>
+                    <div class="dashboard-grid mt-2">
+                        <div class="card text-center" style="border-top:4px solid var(--danger);">
+                            <h3>National Emergency</h3>
+                            <h1 class="text-danger mt-1">112</h1>
+                            <button class="btn btn-danger mt-1" style="width:100%;">Call Now</button>
+                        </div>
+                        <div class="card text-center" style="border-top:4px solid var(--primary);">
+                            <h3>Police</h3>
+                            <h1 class="text-primary mt-1">100</h1>
+                            <button class="btn btn-primary mt-1" style="width:100%;">Call Now</button>
+                        </div>
+                        <div class="card text-center" style="border-top:4px solid var(--warning);">
+                            <h3>Fire</h3>
+                            <h1 class="text-warning mt-1">101</h1>
+                            <button class="btn btn-warning mt-1" style="width:100%;">Call Now</button>
+                        </div>
+                        <div class="card text-center" style="border-top:4px solid var(--success);">
+                            <h3>Ambulance</h3>
+                            <h1 class="text-success mt-1">108</h1>
+                            <button class="btn btn-success mt-1" style="width:100%;">Call Now</button>
+                        </div>
+                        <div class="card text-center" style="border-top:4px solid var(--accent);">
+                            <h3>Disaster Management</h3>
+                            <h1 class="text-accent mt-1">1078</h1>
+                            <button class="btn btn-primary mt-1" style="width:100%;">Call Now</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Safety Info -->
+                <section id="view-people-safety" class="page-view hidden">
+                    <h2>Safety Information</h2>
+                    <div class="dashboard-grid mt-2">
+                        <div class="card">
+                            <h3><i class="fas fa-water text-accent"></i> Flood</h3>
+                            <ul class="mt-1" style="padding-left:20px;">
+                                <li>Move to higher ground immediately.</li>
+                                <li>Do not walk or drive through floodwaters.</li>
+                                <li>Turn off utilities at the main switches.</li>
+                            </ul>
+                        </div>
+                        <div class="card">
+                            <h3><i class="fas fa-house-damage text-warning"></i> Earthquake</h3>
+                            <ul class="mt-1" style="padding-left:20px;">
+                                <li>Drop, Cover, and Hold on.</li>
+                                <li>Stay away from glass and heavy furniture.</li>
+                                <li>If outside, move to an open area away from buildings.</li>
+                            </ul>
+                        </div>
+                        <div class="card">
+                            <h3><i class="fas fa-fire text-danger"></i> Fire</h3>
+                            <ul class="mt-1" style="padding-left:20px;">
+                                <li>Crawl low under smoke.</li>
+                                <li>Check doors for heat before opening.</li>
+                                <li>Once out, stay out and call 101.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+
+                <!-- ========================================== -->
+                <!-- MANAGEMENT VIEWS                           -->
+                <!-- ========================================== -->
+
+                <!-- Overview -->
+                <section id="view-management-overview" class="page-view hidden">
+                    <!-- 1. Page Heading and Important Quick Actions -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
+                        <div>
+                            <h2><i class="fas fa-shield-alt text-accent"></i> Command Center Overview</h2>
+                            <p style="color:var(--text-muted); margin:2px 0 0 0; font-size:13px;">Real-time operational summary across Pune disaster relief requests, rescue units, and logistical resources.</p>
+                        </div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <button class="btn btn-primary btn-sm" onclick="App.navigate('management-map')">
+                                <i class="fas fa-map-marked-alt"></i> Full Operations Map
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="ManagementApp.navigateWithFilter('management-critical')">
+                                <i class="fas fa-exclamation-triangle"></i> Critical Queue
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="App.navigate('management-queue')">
+                                <i class="fas fa-layer-group"></i> Priority Heap
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="ManagementApp.renderOverview()">
+                                <i class="fas fa-sync-alt"></i> Refresh Telemetry
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Summary Cards (Active Requests, Critical Requests, Available Teams, Resource Availability) -->
+                    <div class="dashboard-grid">
+                        <!-- Card 1: Active Requests -->
+                        <div class="stat-card clickable" tabindex="0" role="button" aria-label="Active Relief Requests" title="View all active relief requests" onclick="ManagementApp.navigateWithFilter('management-requests', {status:'ALL'})" onkeydown="ManagementApp.handleCardKeydown(event, 'management-requests', {status:'ALL'})">
+                            <i class="fas fa-arrow-right stat-card-arrow" aria-hidden="true"></i>
+                            <h3><i class="fas fa-clipboard-list text-accent"></i> Active Relief Requests</h3>
+                            <div class="num" id="stat-total">0</div>
+                            <small><span id="stat-pending">0</span> Pending Triage • <span id="stat-progress">0</span> In Progress</small>
+                        </div>
+
+                        <!-- Card 2: Critical Requests -->
+                        <div class="stat-card danger clickable" tabindex="0" role="button" aria-label="Critical Emergencies" title="View urgent and critical requests" onclick="ManagementApp.navigateWithFilter('management-critical')" onkeydown="ManagementApp.handleCardKeydown(event, 'management-critical')">
+                            <i class="fas fa-arrow-right stat-card-arrow" aria-hidden="true"></i>
+                            <h3><i class="fas fa-exclamation-triangle text-danger"></i> Critical Emergencies</h3>
+                            <div class="num text-danger" id="stat-critical-high">0</div>
+                            <small><span id="stat-critical" class="hidden">0</span>Immediate Life Threat Priority Dispatches</small>
+                        </div>
+
+                        <!-- Card 3: Available Rescue Teams -->
+                        <div class="stat-card clickable" tabindex="0" role="button" aria-label="Available Rescue Teams" title="View rescue squads roster" onclick="ManagementApp.navigateWithFilter('management-teams')" onkeydown="ManagementApp.handleCardKeydown(event, 'management-teams')">
+                            <i class="fas fa-arrow-right stat-card-arrow" aria-hidden="true"></i>
+                            <h3><i class="fas fa-users text-primary"></i> Available Rescue Teams</h3>
+                            <div class="num text-primary" id="stat-teams">0</div>
+                            <small><span id="stat-assigned">0</span> Squads Assigned to Active Missions</small>
+                        </div>
+
+                        <!-- Card 4: Resource Availability -->
+                        <div class="stat-card success clickable" tabindex="0" role="button" aria-label="Resource Availability" title="View relief resource supplies" onclick="ManagementApp.navigateWithFilter('management-resources')" onkeydown="ManagementApp.handleCardKeydown(event, 'management-resources')">
+                            <i class="fas fa-arrow-right stat-card-arrow" aria-hidden="true"></i>
+                            <h3><i class="fas fa-boxes text-success"></i> Resource Availability</h3>
+                            <div class="num text-success" id="stat-resources">0</div>
+                            <small><span id="stat-completed">0</span> Completed Relief Deliveries</small>
+                        </div>
+                    </div>
+
+                    <!-- 3. Live Operations Map with Clear Team and Request Markers -->
+                    <div class="card mt-1" style="position:relative;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                            <div>
+                                <h3 style="margin:0;"><i class="fas fa-map-marked-alt text-accent"></i> Live Operations Map Preview</h3>
+                                <p style="color:var(--text-muted); font-size:12px; margin:2px 0 0 0;">Interactive spatial telemetry of deployed rescue squads, citizen distress calls, and verified Pune staging shelters.</p>
+                            </div>
+                            <div style="display:flex; gap:8px;">
+                                <button class="btn btn-secondary btn-sm" onclick="MapApp.renderOverviewMap(true)">
+                                    <i class="fas fa-sync-alt"></i> Refresh Map
+                                </button>
+                                <button class="btn btn-primary btn-sm" onclick="App.navigate('management-map')">
+                                    <i class="fas fa-expand"></i> Launch Full Operations Map
+                                </button>
+                            </div>
+                        </div>
+                        <div id="overview-map-container" style="height:310px; width:100%; border-radius:var(--radius); border:1px solid var(--border); position:relative; overflow:hidden;"></div>
+                        <!-- High Contrast Map Legend Strip -->
+                        <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:10px; font-size:11.5px; color:var(--text-muted); padding-top:8px; border-top:1px solid var(--border);">
+                            <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:50%; background:#16a34a; display:inline-block;"></span> <b>Live Team</b> (&le;60s)</span>
+                            <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:50%; background:#d97706; display:inline-block;"></span> <b>Stale Team</b></span>
+                            <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:50%; background:#f59e0b; display:inline-block;"></span> <b>Simulated [SIM]</b></span>
+                            <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:50%; background:#dc2626; display:inline-block;"></span> <b>Critical Incident</b></span>
+                            <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:50%; background:#0284c7; display:inline-block;"></span> <b>Active Request</b></span>
+                            <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:50%; background:#8e44ad; display:inline-block;"></span> <b>Relief Shelter</b></span>
+                        </div>
+                    </div>
+
+                    <!-- 4. Critical and Recent Requests -->
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap:16px; margin-top:18px;">
+                        <!-- Critical Emergencies Queue -->
+                        <div class="card" style="margin-bottom:0; border-top:3.5px solid var(--danger);">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                                <h3 style="margin:0; font-size:14px; color:var(--danger);"><i class="fas fa-exclamation-triangle"></i> Critical Emergencies Requiring Triage</h3>
+                                <button class="btn btn-secondary btn-sm" onclick="ManagementApp.navigateWithFilter('management-critical')">View All</button>
+                            </div>
+                            <div id="overview-critical-list" style="max-height:260px; overflow-y:auto;">
+                                <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading critical incidents...
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Relief Requests Feed -->
+                        <div class="card" style="margin-bottom:0; border-top:3.5px solid var(--accent);">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                                <h3 style="margin:0; font-size:14px;"><i class="fas fa-clock text-accent"></i> Recent Distress Calls</h3>
+                                <button class="btn btn-secondary btn-sm" onclick="ManagementApp.navigateWithFilter('management-requests', {status:'ALL'})">All Requests</button>
+                            </div>
+                            <div id="overview-recent-list" style="max-height:260px; overflow-y:auto;">
+                                <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading recent requests...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Team and Resource Summaries -->
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap:16px; margin-top:16px;">
+                        <!-- Rescue Squads Summary -->
+                        <div class="card" style="margin-bottom:0;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                                <h3 style="margin:0; font-size:14px;"><i class="fas fa-users text-primary"></i> Rescue Squads Status Summary</h3>
+                                <button class="btn btn-secondary btn-sm" onclick="App.navigate('management-teams')">Manage Teams</button>
+                            </div>
+                            <div id="overview-teams-list" style="max-height:240px; overflow-y:auto;">
+                                <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading squads summary...
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resource Inventory Summary -->
+                        <div class="card" style="margin-bottom:0;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                                <h3 style="margin:0; font-size:14px;"><i class="fas fa-boxes text-success"></i> Logistics Stockpile Snapshot</h3>
+                                <button class="btn btn-secondary btn-sm" onclick="App.navigate('management-resources')">Update Stock</button>
+                            </div>
+                            <div id="overview-resources-list" style="max-height:240px; overflow-y:auto;">
+                                <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading inventory snapshot...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 6. Relevant Analytics and Operational Information -->
+                    <div class="card mt-2">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <h3 style="margin:0; font-size:14px;"><i class="fas fa-chart-line text-accent"></i> Operational Telemetry & System Diagnostics</h3>
+                            <button class="btn btn-secondary btn-sm" onclick="App.navigate('management-analytics')">Full Analytics & Reports</button>
+                        </div>
+                        <div class="detail-grid" style="font-size:12.5px;">
+                            <div style="background:#f8fafc; padding:12px 14px; border-radius:var(--radius-sm); border:1px solid var(--border);">
+                                <strong style="color:var(--primary);"><i class="fas fa-layer-group text-accent"></i> Dispatch Queue Engine:</strong>
+                                <p style="margin:4px 0 0; color:var(--text-muted);">Binary Max-Heap Priority Queue active. Automatically organizes incoming emergencies by calculated priority weight.</p>
+                            </div>
+                            <div style="background:#f8fafc; padding:12px 14px; border-radius:var(--radius-sm); border:1px solid var(--border);">
+                                <strong style="color:var(--primary);"><i class="fas fa-route text-success"></i> Shortest-Path Graph Routing:</strong>
+                                <p style="margin:4px 0 0; color:var(--text-muted);">Dijkstra's shortest-path graph routing active across 10 municipal hubs in Pune sector (reference distance routing).</p>
+                            </div>
+                            <div style="background:#f8fafc; padding:12px 14px; border-radius:var(--radius-sm); border:1px solid var(--border);">
+                                <strong style="color:var(--primary);"><i class="fas fa-satellite-dish text-warning"></i> Real-Time GPS Tracking:</strong>
+                                <p style="margin:4px 0 0; color:var(--text-muted);">W3C Geolocation polling active with 60-second telemetry freshness expiry (Live, Stale, Simulated, Not Sharing).</p>
+                            </div>
+                            <div style="background:#f8fafc; padding:12px 14px; border-radius:var(--radius-sm); border:1px solid var(--border);">
+                                <strong style="color:var(--primary);"><i class="fas fa-history text-danger"></i> Safe State Rollback:</strong>
+                                <p style="margin:4px 0 0; color:var(--text-muted);">LIFO Action History Stack maintains reversible audit logs for all team dispatches and resource allocations.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Live Operations Map (Phase 4) -->
+                <section id="view-management-map" class="page-view hidden">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                        <div>
+                            <h2><i class="fas fa-map-marked-alt" style="color:var(--accent);"></i> Pune Operations Command Map</h2>
+                            <p style="margin:2px 0 0 0; color:var(--gray-dark);">Real-time spatial tracking of deployed rescue teams, citizen distress coordinates, and verified Pune relief shelters.</p>
+                        </div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                            <span id="map-live-status-badge" class="badge" style="background:#28a745; color:#fff; font-size:11px; padding:6px 10px;">
+                                <i class="fas fa-circle" style="font-size:8px;"></i> LIVE POLLING (5s)
+                            </span>
+                            <button class="btn btn-secondary btn-sm" onclick="MapApp.fitAvailableBounds()" title="Fit map view to all visible markers">
+                                <i class="fas fa-compress-arrows-alt"></i> Fit All Markers
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="MapApp.refreshData()" title="Force immediate telemetry sync">
+                                <i class="fas fa-sync-alt"></i> Refresh Locations
+                            </button>
+                            <button class="btn btn-outline btn-sm" onclick="MapApp.focusTeams()" style="border:1px solid #cbd5e1;">
+                                <i class="fas fa-users text-accent"></i> Focus Teams
+                            </button>
+                            <button class="btn btn-outline btn-sm" onclick="MapApp.focusRequests()" style="border:1px solid #cbd5e1;">
+                                <i class="fas fa-life-ring text-danger"></i> Focus Requests
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Top Map Summary Metric Strip -->
+                    <div class="dashboard-grid mb-2" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+                        <div class="card stat-card" style="border-left: 4px solid #27ae60; padding:12px 16px;">
+                            <div class="stat-label">LIVE TEAMS</div>
+                            <div id="map-stat-live-teams" class="stat-value" style="font-size:1.4rem; color:#27ae60;">0</div>
+                            <small class="text-muted">Broadcasting &le; 60s</small>
+                        </div>
+                        <div class="card stat-card" style="border-left: 4px solid #e67e22; padding:12px 16px;">
+                            <div class="stat-label">STALE TEAMS</div>
+                            <div id="map-stat-stale-teams" class="stat-value" style="font-size:1.4rem; color:#e67e22;">0</div>
+                            <small class="text-muted">Last known position</small>
+                        </div>
+                        <div class="card stat-card" style="border-left: 4px solid var(--accent); padding:12px 16px;">
+                            <div class="stat-label">MAPPED REQUESTS</div>
+                            <div id="map-stat-requests" class="stat-value" style="font-size:1.4rem; color:var(--accent);">0</div>
+                            <small class="text-muted">Valid coordinates</small>
+                        </div>
+                        <div class="card stat-card" style="border-left: 4px solid var(--danger); padding:12px 16px;">
+                            <div class="stat-label">CRITICAL EMERGENCIES</div>
+                            <div id="map-stat-critical" class="stat-value" style="font-size:1.4rem; color:var(--danger);">0</div>
+                            <small class="text-muted">High-priority pins</small>
+                        </div>
+                    </div>
+
+                    <!-- Map Filter Toolbar -->
+                    <div class="map-filter-toolbar">
+                        <span style="font-weight:600; font-size:12px; color:var(--primary); margin-right:4px;">
+                            <i class="fas fa-filter text-accent"></i> Filters:
+                        </span>
+                        <label class="map-filter-item">
+                            <input type="checkbox" id="map-filter-teams" checked onchange="MapApp.onFilterChange()">
+                            <span>All Teams</span>
+                        </label>
+                        <label class="map-filter-item">
+                            <input type="checkbox" id="map-filter-sharing-only" onchange="MapApp.onFilterChange()">
+                            <span>Sharing Only</span>
+                        </label>
+                        <label class="map-filter-item">
+                            <input type="checkbox" id="map-filter-stale" checked onchange="MapApp.onFilterChange()">
+                            <span>Stale Squads</span>
+                        </label>
+                        <label class="map-filter-item">
+                            <input type="checkbox" id="map-filter-simulated" checked onchange="MapApp.onFilterChange()">
+                            <span>Simulated Squads</span>
+                        </label>
+                        <label class="map-filter-item">
+                            <input type="checkbox" id="map-filter-requests" checked onchange="MapApp.onFilterChange()">
+                            <span>Active Relief Requests</span>
+                        </label>
+                        <label class="map-filter-item">
+                            <input type="checkbox" id="map-filter-crit-only" onchange="MapApp.onFilterChange()">
+                            <span>Critical Only</span>
+                        </label>
+                        <label class="map-filter-item">
+                            <input type="checkbox" id="map-filter-centers" checked onchange="MapApp.onFilterChange()">
+                            <span>Relief Centres / Shelters</span>
+                        </label>
+                        <label class="map-filter-item">
+                            <input type="checkbox" id="map-filter-routes" checked onchange="MapApp.onFilterChange()">
+                            <span>Straight-line Reference</span>
+                        </label>
+                        <div style="display:inline-flex; align-items:center; gap:4px; margin-left:6px;">
+                            <span style="font-size:12px; font-weight:600; color:var(--primary);"><i class="fas fa-map-pin text-accent"></i> Locality:</span>
+                            <select id="map-filter-locality" class="form-control" style="font-size:11px; height:28px; width:145px; padding:2px 6px;" onchange="MapApp.onLocalityFilterChange(this.value)">
+                                <option value="ALL">All Pune Sectors</option>
+                                <option value="pune_center">Pune City Center</option>
+                                <option value="shivajinagar">Shivajinagar</option>
+                                <option value="swargate">Swargate</option>
+                                <option value="kothrud">Kothrud</option>
+                                <option value="hadapsar">Hadapsar</option>
+                                <option value="baner">Baner / Balewadi</option>
+                                <option value="pimpri">Pimpri</option>
+                                <option value="chinchwad">Chinchwad</option>
+                                <option value="station">Pune Station Vicinity</option>
+                                <option value="yerawada">Yerawada</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Offline notice alert -->
+                    <div id="map-offline-alert" class="alert alert-warning mb-2" style="display:none;">
+                        <i class="fas fa-wifi"></i> <strong>Offline Tile Notice:</strong> OpenStreetMap tile servers could not be reached. Local coordinates and telemetry markers remain fully operational and interactive.
+                    </div>
+
+                    <!-- Map Layout Grid (Canvas + Contextual Inspector) -->
+                    <div class="map-layout-grid">
+                        <!-- Left Canvas Area -->
+                        <div>
+                            <div id="live-operations-map" style="height:580px; width:100%; border-radius:var(--radius); border:1px solid #cbd5e1; box-shadow:var(--shadow);"></div>
+
+                            <!-- Legend Bar -->
+                            <div class="map-legend-card">
+                                <strong style="font-size:12px; color:var(--primary);"><i class="fas fa-map-signs text-accent"></i> Map Markers Legend:</strong>
+                                <div class="map-legend-grid">
+                                    <div class="legend-item">
+                                        <div class="legend-icon-badge" style="background:#2ecc71;"><i class="fas fa-shield-alt"></i></div>
+                                        <span><b>Live Team</b> (GPS &le; 60s)</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="legend-icon-badge" style="background:#e67e22;"><i class="fas fa-history"></i></div>
+                                        <span><b>Stale Team</b> (Last-Known)</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="legend-icon-badge" style="background:#f1c40f; color:#212529;"><i class="fas fa-flask"></i></div>
+                                        <span><b>Simulated Team</b> [SIM]</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="legend-icon-badge" style="background:#7f8c8d;"><i class="fas fa-pause"></i></div>
+                                        <span><b>Not Sharing</b> (Paused)</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="legend-icon-badge" style="background:#e74c3c;"><i class="fas fa-exclamation-triangle"></i></div>
+                                        <span><b>Critical Request</b> (Urgent)</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="legend-icon-badge" style="background:#3498db;"><i class="fas fa-life-ring"></i></div>
+                                        <span><b>Active Request</b> (Normal/High)</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="legend-icon-badge" style="background:#8e44ad;"><i class="fas fa-campground"></i></div>
+                                        <span><b>Verified Relief Shelter</b> (Pune)</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="legend-icon-badge" style="background:#1abc9c;"><i class="fas fa-check"></i></div>
+                                        <span><b>Completed</b> (Archived)</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <div style="width:20px; height:2px; background:#e74c3c; border-top:2px dashed #e74c3c;"></div>
+                                        <span><b>Direct Geodesic Line</b> (Straight-line)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Sidebar: Inspector & Relief Centers -->
+                        <div style="display:flex; flex-direction:column; gap:14px;">
+                            <!-- Selected Entity Inspector -->
+                            <div id="map-detail-panel">
+                                <div class="card" style="text-align:center; padding:25px; color:#7f8c8d;">
+                                    <i class="fas fa-crosshairs fa-2x mb-1" style="color:#bdc3c7;"></i>
+                                    <p style="margin:0; font-size:13px;">Click any rescue team or disaster request marker on the map to inspect full telemetry, demographics, logistics, and navigation references.</p>
+                                </div>
+                            </div>
+
+                            <!-- Relief Centers Staging Hubs (Requirement 5) -->
+                            <div class="card">
+                                <h3 style="margin:0 0 4px 0; font-size:14px;">
+                                    <i class="fas fa-campground text-accent"></i> Pune Relief Centres & Emergency Shelters
+                                </h3>
+                                <p style="font-size:11px; color:#64748b; margin-bottom:10px;">
+                                    Verified civic disaster relief shelters in Pune are plotted on the map. Legacy graph network staging nodes without GPS coordinates are listed below without fabricated map pins.
+                                </p>
+                                <div id="map-centers-list">
+                                    <!-- Injected via MapApp -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- All Requests -->
+                <section id="view-management-requests" class="page-view hidden">
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
+                            <h2>All Relief Requests</h2>
+                            <span id="mgmt-filter-count" style="font-size:13px; font-weight:500; color:var(--gray-dark);">Showing all requests</span>
+                        </div>
+
+                        <!-- Filter & DSA Search/Sort Toolbar -->
+                        <div class="filter-toolbar" style="background:var(--light); padding:16px; border-radius:var(--radius); margin-bottom:15px; border:1px solid #e2e8f0;">
+                            <!-- Top row: Search criteria, search input, sort selector, and reset -->
+                            <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:10px;">
+                                <div style="flex:1.2; min-width:180px;">
+                                    <label for="mgmt-search-type" style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:3px;">
+                                        <i class="fas fa-search"></i> Search Criterion:
+                                    </label>
+                                    <select id="mgmt-search-type" class="form-control" style="background:white; font-size:12.5px;">
+                                        <option value="all">All Records (Unfiltered)</option>
+                                        <option value="id">Request ID (Hash Table — O(1) avg)</option>
+                                        <option value="phone">Contact Mobile (Linear Search — O(n))</option>
+                                        <option value="status">Status (Linear Search — O(n))</option>
+                                        <option value="severity">Severity (Linear Search — O(n))</option>
+                                    </select>
+                                </div>
+
+                                <div id="mgmt-query-input-wrap" style="flex:2; min-width:200px;">
+                                    <label for="mgmt-search-query" style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:3px;">
+                                        Query / Target Value:
+                                    </label>
+                                    <input type="text" id="mgmt-search-query" placeholder="Type Request ID (e.g. DR-1001) or Mobile..." class="form-control" style="background:white; font-size:12.5px;">
+                                </div>
+
+                                <div id="mgmt-status-filter-wrap" style="flex:1; min-width:130px; display:none;">
+                                    <label for="mgmt-filter-status" style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:3px;">Status:</label>
+                                    <select id="mgmt-filter-status" class="form-control" style="background:white; font-size:12.5px;">
+                                        <option value="ALL">All Statuses</option>
+                                        <option value="PENDING">PENDING</option>
+                                        <option value="TRIAGED">TRIAGED</option>
+                                        <option value="ASSIGNED">ASSIGNED</option>
+                                        <option value="IN_PROGRESS">IN_PROGRESS</option>
+                                        <option value="COMPLETED">COMPLETED</option>
+                                        <option value="CANCELLED">CANCELLED</option>
+                                    </select>
+                                </div>
+
+                                <div id="mgmt-severity-filter-wrap" style="flex:1; min-width:130px; display:none;">
+                                    <label for="mgmt-filter-severity" style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:3px;">Severity:</label>
+                                    <select id="mgmt-filter-severity" class="form-control" style="background:white; font-size:12.5px;">
+                                        <option value="ALL">All Severities</option>
+                                        <option value="CRITICAL">CRITICAL</option>
+                                        <option value="HIGH">HIGH</option>
+                                        <option value="NORMAL">NORMAL</option>
+                                        <option value="LOW">LOW</option>
+                                    </select>
+                                </div>
+
+                                <div style="flex:1.8; min-width:210px;">
+                                    <label for="mgmt-sort-by" style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:3px;">
+                                        <i class="fas fa-sort-amount-down"></i> C++ Sort Order:
+                                    </label>
+                                    <select id="mgmt-sort-by" class="form-control" style="background:white; font-size:12.5px;">
+                                        <option value="none">Original Order (No Sort)</option>
+                                        <option value="severity">Severity: Highest First (Insertion Sort — O(n²))</option>
+                                        <option value="people">People Affected: Highest First (Selection Sort — O(n²))</option>
+                                        <option value="timestamp">Creation Time: Newest First (Bubble Sort — O(n²))</option>
+                                    </select>
+                                </div>
+
+                                <div style="margin-top:16px;">
+                                    <button id="btn-reset-filters" class="btn btn-secondary btn-sm" title="Clear search and sort filters" style="height:36px; padding:0 14px;">
+                                        <i class="fas fa-undo"></i> Reset
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- DSA Operation Indicator Banner -->
+                            <div id="mgmt-dsa-indicator-banner" style="background:#ffffff; border-left:4px solid var(--accent); padding:8px 12px; border-radius:4px; font-size:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-top:1px solid #f1f5f9; border-right:1px solid #f1f5f9; border-bottom:1px solid #f1f5f9;">
+                                <div>
+                                    <i class="fas fa-microchip text-accent"></i> <b>C++ DSA Execution:</b>
+                                    <span id="mgmt-dsa-search-info" style="color:#0f172a; font-weight:600; margin-left:4px;">Sequential Linked List Traversal [O(n) time]</span>
+                                    <span style="color:#cbd5e1; margin:0 6px;">•</span>
+                                    <span id="mgmt-dsa-sort-info" style="color:#0f172a; font-weight:600;">None (Original Order) [O(1)]</span>
+                                </div>
+                                <div style="font-size:11px; color:#64748b; background:#f8fafc; padding:2px 8px; border-radius:4px; border:1px solid #e2e8f0;">
+                                    <i class="fas fa-code"></i> C++11 Native Algorithms
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive mt-2">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Location</th>
+                                        <th>Type</th>
+                                        <th>Priority</th>
+                                        <th>Status</th>
+                                        <th>Team</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mgmt-requests-tbody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Critical Requests -->
+                <section id="view-management-critical" class="page-view hidden">
+                    <h2 class="text-danger mb-2"><i class="fas fa-exclamation-triangle"></i> CRITICAL EMERGENCIES</h2>
+                    <div id="critical-requests-container" class="dashboard-grid" style="grid-template-columns: 1fr;">
+                        <!-- Injected via JS -->
+                    </div>
+                </section>
+
+                <!-- Priority Queue -->
+                <section id="view-management-queue" class="page-view hidden">
+                    <div class="card ds-card">
+                        <h2>Pending Requests Priority Queue</h2>
+                        <p class="mb-2">Requests are sorted dynamically using a <b>Priority Queue (Max-Heap logic)</b> based on Severity and Timestamp.</p>
+                        <div id="pq-visual">
+                            <!-- Injected via JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Rescue Teams -->
+                <section id="view-management-teams" class="page-view hidden">
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <h2>Rescue Teams</h2>
+                            <button class="btn btn-primary"><i class="fas fa-plus"></i> Add Team</button>
+                        </div>
+                        <div class="table-responsive mt-2">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Specialization</th>
+                                        <th>Base Camp</th>
+                                        <th>Status</th>
+                                        <th>Assignment</th>
+                                        <th>Live GPS Telemetry</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mgmt-teams-tbody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Resources -->
+                <section id="view-management-resources" class="page-view hidden">
+                    <div class="card">
+                        <h2>Resource Inventory</h2>
+                        <div class="table-responsive mt-2">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Resource</th>
+                                        <th>Quantity</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mgmt-resources-tbody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Analytics -->
+                <section id="view-management-analytics" class="page-view hidden">
+                    <h2>Analytics & Reports</h2>
+                    <div class="card mt-2">
+                        <p>Detailed charts and analytical data aggregation using Hash Maps and Trees will be displayed here.</p>
+                        <div style="height: 200px; display:flex; justify-content:center; align-items:center; background:#eee; margin-top:20px; border-radius:8px;">
+                            <i>[ Chart Visualization Placeholder ]</i>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ========================================== -->
+                <!-- TEAM LEADER VIEWS                          -->
+                <!-- ========================================== -->
+
+                <!-- 1. Team Selection / Demo Login -->
+                <section id="view-team-select" class="page-view hidden">
+                    <div class="demo-banner mb-2">
+                        <i class="fas fa-shield-alt"></i>
+                        <span><b>Demonstration Authentication:</b> Select a registered rescue squad to simulate field operations. In production, this is replaced by secure JWT / OAuth2 token authentication with role-based access control.</span>
+                    </div>
+                    <h2>Select Active Rescue Squad</h2>
+                    <p class="mb-2">Choose your operational squad to view isolated mission directives and report real-time field progress.</p>
+                    <div id="team-select-grid" class="dashboard-grid">
+                        <!-- Injected via team_leader.js -->
+                    </div>
+                </section>
+
+                <!-- 2. Team Overview -->
+                <section id="view-team-overview" class="page-view hidden">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                        <div>
+                            <h2>Squad Mission Dashboard</h2>
+                            <p>Real-time field directives, deployment alerts, and squad operation metrics.</p>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn btn-primary btn-sm" onclick="App.navigate('team-map')">
+                                <i class="fas fa-map-marked-alt"></i> Tactical Mission Map
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="TeamLeaderApp.switchTeam()">
+                                <i class="fas fa-exchange-alt"></i> Switch Squad
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 4 Interactive Overview Cards -->
+                    <div class="dashboard-grid">
+                        <div class="stat-card stat-clickable" onclick="App.navigate('team-assigned')" title="View missions dispatched awaiting deployment">
+                            <i class="fas fa-clipboard-list stat-icon" style="color:#e67e22;"></i>
+                            <div class="stat-value" id="tl-stat-assigned">0</div>
+                            <div class="stat-title">Assigned (Pending Start)</div>
+                        </div>
+                        <div class="stat-card stat-clickable" onclick="App.navigate('team-inprogress')" title="View operations actively in progress">
+                            <i class="fas fa-running stat-icon" style="color:#9b59b6;"></i>
+                            <div class="stat-value" id="tl-stat-inprogress">0</div>
+                            <div class="stat-title">In-Progress Operations</div>
+                        </div>
+                        <div class="stat-card stat-clickable" onclick="App.navigate('team-completed')" title="View completed and archived missions">
+                            <i class="fas fa-check-double stat-icon" style="color:var(--success);"></i>
+                            <div class="stat-value" id="tl-stat-completed">0</div>
+                            <div class="stat-title">Completed Missions</div>
+                        </div>
+                        <div class="stat-card stat-clickable" onclick="App.navigate('team-assigned')" title="View urgent and critical priority missions">
+                            <i class="fas fa-exclamation-triangle stat-icon" style="color:var(--danger);"></i>
+                            <div class="stat-value" id="tl-stat-critical">0</div>
+                            <div class="stat-title">Critical Urgency</div>
+                        </div>
+                    </div>
+
+                    <!-- Field Telemetry & GPS Transmitter Status Bar -->
+                    <div class="card mt-2 mb-2" style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div style="width:38px; height:38px; border-radius:50%; background:#e0f2fe; color:var(--accent); display:flex; align-items:center; justify-content:center; font-size:16px;">
+                                <i class="fas fa-satellite-dish"></i>
+                            </div>
+                            <div>
+                                <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Squad Telemetry Transmitter</div>
+                                <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
+                                    <span id="tl-overview-gps-badge" class="badge" style="background:#64748b; color:#fff; font-size:11px;">NOT SHARING</span>
+                                    <span id="tl-overview-gps-coords" style="font-size:12px; color:var(--text-secondary); font-family:var(--font-mono);">-- , --</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                            <button id="tl-overview-btn-start-gps" class="btn btn-success btn-sm" onclick="TeamLeaderApp.startLocationSharing()">
+                                <i class="fas fa-play"></i> Start GPS Broadcast
+                            </button>
+                            <button id="tl-overview-btn-stop-gps" class="btn btn-danger btn-sm" onclick="TeamLeaderApp.stopLocationSharing()" style="display:none;">
+                                <i class="fas fa-stop"></i> Stop GPS Broadcast
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="App.navigate('team-location')" title="Telemetry & Simulation Controls">
+                                <i class="fas fa-sliders-h"></i> Telemetry Settings
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Active Mission Banner -->
+                    <div id="team-active-banner" class="mt-2 mb-2">
+                        <!-- Injected via team_leader.js -->
+                    </div>
+
+                    <!-- Recent Squad Missions -->
+                    <div class="card mt-2">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <h3 style="margin:0;"><i class="fas fa-history text-primary"></i> Squad Mission Log</h3>
+                            <button class="btn btn-secondary btn-sm" onclick="TeamLeaderApp.syncMissions(); TeamLeaderApp.renderOverview();">
+                                <i class="fas fa-sync-alt"></i> Refresh Log
+                            </button>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Mission ID</th>
+                                        <th>Citizen</th>
+                                        <th>Location</th>
+                                        <th>Severity</th>
+                                        <th>Status</th>
+                                        <th>People</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="team-recent-missions-tbody">
+                                    <!-- Injected via team_leader.js -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Team Leader Mission Map -->
+                <section id="view-team-map" class="page-view hidden">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                        <div>
+                            <h2><i class="fas fa-map-marked-alt text-primary"></i> Team Mission Map <span class="badge" style="background:var(--accent); color:#fff; font-size:11px; vertical-align:middle; margin-left:6px;">Pune Sector</span></h2>
+                            <p>Monitor assigned Pune emergency targets, navigate to incident coordinates, and manage live squad GPS telemetry.</p>
+                        </div>
+                        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                            <span id="tl-map-freshness-badge" class="badge" style="background:#6c757d; color:#fff; font-size:11px; padding:6px 10px;">
+                                NOT SHARING
+                            </span>
+                            <button id="tl-map-btn-start-sharing" class="btn btn-success btn-sm" onclick="TeamLeaderApp.startLocationSharing(); TeamMissionMap.refreshData();">
+                                <i class="fas fa-play"></i> Start Sharing
+                            </button>
+                            <button id="tl-map-btn-stop-sharing" class="btn btn-danger btn-sm" onclick="TeamLeaderApp.stopLocationSharing(); TeamMissionMap.refreshData();" style="display:none;">
+                                <i class="fas fa-stop"></i> Stop Sharing
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="TeamMissionMap.centerOnSquad()" title="Center map on squad GPS fix">
+                                <i class="fas fa-crosshairs"></i> Center Squad
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="TeamMissionMap.fitBounds()" title="Fit map view to squad and missions">
+                                <i class="fas fa-expand-arrows-alt"></i> Fit All
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="TeamMissionMap.refreshData()" title="Refresh telemetry and missions">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="map-layout-grid">
+                        <div class="map-viewport-wrapper">
+                            <div id="team-mission-interactive-map" style="height:560px; width:100%; border-radius:var(--radius); border:1px solid #cbd5e1; box-shadow:var(--shadow);"></div>
+                            <div class="map-legend-card mt-1">
+                                <strong style="font-size:12px; color:var(--primary);"><i class="fas fa-map-signs text-accent"></i> Mission Map Markers:</strong>
+                                <div class="map-legend-grid">
+                                    <div class="legend-item"><span class="legend-icon" style="background:#28a745;"></span> My Squad Pin (Live GPS)</div>
+                                    <div class="legend-item"><span class="legend-icon" style="background:#e67e22;"></span> My Squad Pin (Stale Signal)</div>
+                                    <div class="legend-item"><span class="legend-icon" style="background:#ffc107;"></span> My Squad Pin (Simulated)</div>
+                                    <div class="legend-item"><span class="legend-icon" style="background:#e74c3c;"></span> Critical Mission Target</div>
+                                    <div class="legend-item"><span class="legend-icon" style="background:#3498db;"></span> Normal Mission Target</div>
+                                    <div class="legend-item"><span class="legend-icon" style="background:#28a745;"></span> Completed Mission Archive</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="map-sidebar-panel">
+                            <div id="team-map-detail-panel">
+                                <!-- Selected mission directive / squad telemetry details -->
+                            </div>
+
+                            <div class="card mt-2">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                    <h3 style="margin:0; font-size:14px;"><i class="fas fa-tasks text-primary"></i> Squad Directives</h3>
+                                    <span id="tl-map-mission-count" class="badge" style="background:#34495e; color:#fff;">0</span>
+                                </div>
+                                <div id="team-map-mission-list" style="max-height:240px; overflow-y:auto;">
+                                    <!-- Injected via JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. Assigned Missions -->
+                <section id="view-team-assigned" class="page-view hidden">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                        <div>
+                            <h2>Assigned Missions (Pending Deployment)</h2>
+                            <p>Directives dispatched to your unit by Central Management awaiting field rollout.</p>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="TeamLeaderApp.refreshView('team-assigned')">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    <div id="team-assigned-container">
+                        <!-- Injected via team_leader.js -->
+                    </div>
+                </section>
+
+                <!-- 4. In-Progress Missions -->
+                <section id="view-team-inprogress" class="page-view hidden">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                        <div>
+                            <h2>In-Progress Field Operations</h2>
+                            <p>Active missions currently underway. Update field progress or mark completed once relief is delivered.</p>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="TeamLeaderApp.refreshView('team-inprogress')">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    <div id="team-inprogress-container">
+                        <!-- Injected via team_leader.js -->
+                    </div>
+                </section>
+
+                <!-- 5. Completed Missions -->
+                <section id="view-team-completed" class="page-view hidden">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                        <div>
+                            <h2>Completed Missions Archive</h2>
+                            <p>Historical operations successfully resolved by your squad (read-only audit trail).</p>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="TeamLeaderApp.refreshView('team-completed')">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    <div id="team-completed-container">
+                        <!-- Injected via team_leader.js -->
+                    </div>
+                </section>
+
+                <!-- 6. Squad Profile -->
+                <section id="view-team-profile" class="page-view hidden">
+                    <h2>Rescue Squad Profile & Operational Readiness</h2>
+                    <p class="mb-2">Operational specialization, staging base camp, and team duty log.</p>
+                    <div id="team-profile-container">
+                        <!-- Injected via team_leader.js -->
+                    </div>
+                </section>
+
+                <!-- 7. My Location (Phase 3 - GPS Telemetry) -->
+                <section id="view-team-location" class="page-view hidden">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                        <div>
+                            <h2><i class="fas fa-crosshairs" style="color:var(--accent);"></i> My Location & Real-Time GPS Tracking</h2>
+                            <p>Broadcast your squad's live field telemetry coordinates to Central Management.</p>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button id="btn-start-location-sharing" class="btn btn-success" onclick="TeamLeaderApp.startLocationSharing()">
+                                <i class="fas fa-play"></i> Start Location Sharing
+                            </button>
+                            <button id="btn-stop-location-sharing" class="btn btn-danger" onclick="TeamLeaderApp.stopLocationSharing()" style="display:none;">
+                                <i class="fas fa-stop"></i> Stop Location Sharing
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="TeamLeaderApp.renderLocationView()">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Telemetry Summary Cards -->
+                    <div class="dashboard-grid mb-2">
+                        <div class="card stat-card" style="border-left: 4px solid var(--accent);">
+                            <div class="stat-label">SHARING STATUS</div>
+                            <div id="gps-status-badge" class="stat-value" style="font-size:1.15rem; margin: 6px 0;">
+                                <span class="badge" style="background:#6c757d; color:#fff;">NOT SHARING</span>
+                            </div>
+                            <small id="gps-status-desc" class="text-muted">GPS tracking is currently idle. Click Start Sharing to begin.</small>
+                        </div>
+                        <div class="card stat-card">
+                            <div class="stat-label">CURRENT COORDINATES</div>
+                            <div id="gps-coords-display" class="stat-value" style="font-size:1.15rem; margin: 6px 0; font-family:monospace;">
+                                -- , --
+                            </div>
+                            <small id="gps-lat-lon-detail" class="text-muted">Lat: Not acquired | Lon: Not acquired</small>
+                        </div>
+                        <div class="card stat-card">
+                            <div class="stat-label">GPS ACCURACY</div>
+                            <div id="gps-accuracy-display" class="stat-value" style="font-size:1.15rem; margin: 6px 0;">
+                                --
+                            </div>
+                            <small id="gps-accuracy-note" class="text-muted">Signal confidence radius (metres)</small>
+                        </div>
+                        <div class="card stat-card">
+                            <div class="stat-label">LAST UPDATE TIME</div>
+                            <div id="gps-timestamp-display" class="stat-value" style="font-size:1.15rem; margin: 6px 0;">
+                                --
+                            </div>
+                            <small id="gps-age-display" class="text-muted">No telemetry received yet</small>
+                        </div>
+                    </div>
+
+                    <!-- Alert message container -->
+                    <div id="gps-alert-container"></div>
+
+                    <!-- Telemetry Details & Mode Panel -->
+                    <div class="card mb-2">
+                        <h3><i class="fas fa-satellite-dish"></i> GPS Device & Telemetry Specification</h3>
+                        <div class="detail-grid mt-1">
+                            <div>
+                                <strong>Active Rescue Unit:</strong> <span id="gps-team-id">--</span>
+                            </div>
+                            <div>
+                                <strong>Assigned Mission:</strong> <span id="gps-mission-id">None</span>
+                            </div>
+                            <div>
+                                <strong>Hardware API:</strong> <span>W3C Geolocation (navigator.geolocation.watchPosition)</span>
+                            </div>
+                            <div>
+                                <strong>Freshness Classification:</strong> <span id="gps-freshness-tag"><span class="badge" style="background:#6c757d; color:#fff;">NOT SHARING</span></span>
+                            </div>
+                            <div>
+                                <strong>Update Throttle Interval:</strong> <span>5 seconds (network rate limiter)</span>
+                            </div>
+                            <div>
+                                <strong>Freshness Expiry Window:</strong> <span>60 seconds (prototype freshness threshold)</span>
+                            </div>
+                        </div>
+
+                        <!-- HTTPS Context Notice -->
+                        <div class="alert alert-info mt-2" style="font-size:0.88rem; line-height:1.4;">
+                            <i class="fas fa-shield-alt"></i> <strong>Browser Geolocation Security Context:</strong>
+                            During local prototype testing via <code>http://localhost:3000/</code>, modern browsers treat localhost as a secure origin and grant Geolocation access directly. If testing across local LAN devices (e.g. mobile phones on <code>http://192.168.x.x:3000/</code>), modern browsers require HTTPS encryption before enabling the Geolocation hardware API.
+                        </div>
+                    </div>
+
+                    <!-- Optional Simulated Test Mode -->
+                    <div class="card" style="border: 1px dashed #ffc107; background: #fffdf5;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                            <div>
+                                <h3 style="color:#d39e00;"><i class="fas fa-vial"></i> Simulated GPS Test Mode (Development & Testing)</h3>
+                                <p style="font-size:0.9rem; color:#666;">
+                                    When testing on a desktop or device without GPS hardware, use simulated coordinates.
+                                    <strong>Disabled by default.</strong> Simulated coordinates are explicitly tagged as <span class="badge" style="background:#ffc107; color:#212529;">SIMULATED</span> across the system and never mixed with real GPS data.
+                                </p>
+                            </div>
+                            <div>
+                                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:600;">
+                                    <input type="checkbox" id="chk-simulation-mode" onchange="TeamLeaderApp.toggleSimulationMode(this.checked)">
+                                    Enable Simulated Mode
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="sim-controls-panel" style="display:none; margin-top:14px; padding-top:14px; border-top:1px solid #ffeeba;">
+                            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; align-items:end;">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>Simulated Latitude (-90 to +90)</label>
+                                    <input type="number" id="sim-lat" class="form-control" step="0.0001" value="18.5204">
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>Simulated Longitude (-180 to +180)</label>
+                                    <input type="number" id="sim-lon" class="form-control" step="0.0001" value="73.8567">
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>Simulated Accuracy (metres)</label>
+                                    <input type="number" id="sim-acc" class="form-control" step="1" value="15">
+                                </div>
+                                <div>
+                                    <button class="btn btn-warning" onclick="TeamLeaderApp.transmitSimulatedLocation()" style="width:100%;">
+                                        <i class="fas fa-paper-plane"></i> Send Simulated Telemetry
+                                    </button>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+                                <button class="btn btn-secondary btn-sm" onclick="TeamLeaderApp.setPresetCoordinates(18.5314, 73.8446, 'PMC Shivajinagar Base')">Preset: Shivajinagar (18.5314, 73.8446)</button>
+                                <button class="btn btn-secondary btn-sm" onclick="TeamLeaderApp.setPresetCoordinates(18.5028, 73.8567, 'Swargate Stadium Base')">Preset: Swargate (18.5028, 73.8567)</button>
+                                <button class="btn btn-secondary btn-sm" onclick="TeamLeaderApp.setPresetCoordinates(18.5004, 73.9340, 'Hadapsar Transit Base')">Preset: Hadapsar (18.5004, 73.9340)</button>
+                                <button class="btn btn-secondary btn-sm" onclick="TeamLeaderApp.setPresetCoordinates(18.6365, 73.8227, 'Pimpri Camp Base')">Preset: Pimpri (18.6365, 73.8227)</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/leaflet.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/requests.js"></script>
+    <script src="js/teams.js"></script>
+    <script src="js/resources.js"></script>
+    <script src="js/graph.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/people.js"></script>
+    <script src="js/management.js"></script>
+    <script src="js/team_leader.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

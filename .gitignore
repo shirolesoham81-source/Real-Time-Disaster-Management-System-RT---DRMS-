@@ -1,0 +1,20 @@
+# Local credentials and environment configuration
+.env
+.env.*
+!.env.example
+
+# Local data and operational records
+backend/data/*.txt
+backend/data/*.bak
+backend/data/test_fixtures/
+
+# Build output and compiled artifacts
+*.exe
+*.o
+*.obj
+*.dll
+
+# Dependencies, logs, and temporary files
+node_modules/
+*.log
+*.tmp
