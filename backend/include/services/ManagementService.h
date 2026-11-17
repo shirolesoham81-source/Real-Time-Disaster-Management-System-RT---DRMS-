@@ -298,12 +298,12 @@ public:
                       const std::string& specialization,
                       const std::string& currentLocation = "Central") {
         if (teamId.empty() || name.empty()) {
-            std::cout << "[TEAM ERROR] Team ID and name cannot be empty.\n";
+            std::cerr << "[TEAM ERROR] Team ID and name cannot be empty.\n";
             return false;
         }
 
         if (findTeam(teamId) != nullptr) {
-            std::cout << "[TEAM ERROR] Duplicate Team ID '" << teamId << "' rejected.\n";
+            std::cerr << "[TEAM ERROR] Duplicate Team ID '" << teamId << "' rejected.\n";
             return false;
         }
 
@@ -471,12 +471,12 @@ public:
                           int quantity,
                           int threshold = 20) {
         if (resId.empty() || name.empty() || quantity < 0) {
-            std::cout << "[RESOURCE ERROR] Invalid resource parameters.\n";
+            std::cerr << "[RESOURCE ERROR] Invalid resource parameters.\n";
             return false;
         }
 
         if (findResource(resId) != nullptr) {
-            std::cout << "[RESOURCE ERROR] Duplicate Resource ID '" << resId << "' rejected.\n";
+            std::cerr << "[RESOURCE ERROR] Duplicate Resource ID '" << resId << "' rejected.\n";
             return false;
         }
 
@@ -556,12 +556,12 @@ public:
                         double longitude = 0.0,
                         bool isDemonstration = false) {
         if (centerId.empty() || name.empty()) {
-            std::cout << "[CENTER ERROR] Center ID and name cannot be empty.\n";
+            std::cerr << "[CENTER ERROR] Center ID and name cannot be empty.\n";
             return false;
         }
 
         if (findCenter(centerId) != nullptr) {
-            std::cout << "[CENTER ERROR] Duplicate Center ID '" << centerId << "' rejected.\n";
+            std::cerr << "[CENTER ERROR] Duplicate Center ID '" << centerId << "' rejected.\n";
             return false;
         }
 

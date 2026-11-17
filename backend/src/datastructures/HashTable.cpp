@@ -63,7 +63,7 @@ bool HashTable::contains(const std::string& id) const {
 // Insert non-owning pointer - average O(1)
 bool HashTable::insert(const std::string& id, ReliefRequest* reqPtr) {
     if (reqPtr == nullptr) {
-        std::cout << "[HASH ERROR] Null request pointer rejected for ID: " << id << "\n";
+        std::cerr << "[HASH ERROR] Null request pointer rejected for ID: " << id << "\n";
         return false;
     }
 
@@ -72,7 +72,7 @@ bool HashTable::insert(const std::string& id, ReliefRequest* reqPtr) {
     HashNode* current = buckets[bucketIdx];
     while (current != nullptr) {
         if (current->key == id) {
-            std::cout << "[HASH ERROR] Duplicate Request ID '" << id << "' rejected.\n";
+            std::cerr << "[HASH ERROR] Duplicate Request ID '" << id << "' rejected.\n";
             return false;
         }
         current = current->next;

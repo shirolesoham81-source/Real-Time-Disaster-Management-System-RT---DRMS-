@@ -81,7 +81,7 @@ int Graph::addVertex(const std::string& areaName) {
     }
 
     if (findVertex(areaName) != -1) {
-        std::cout << "[GRAPH ERROR] Duplicate area name '" << areaName << "' rejected.\n";
+        std::cerr << "[GRAPH ERROR] Duplicate area name '" << areaName << "' rejected.\n";
         return -1;
     }
 
@@ -99,12 +99,12 @@ int Graph::addVertex(const std::string& areaName) {
 // Add bidirectional edge - O(E)
 bool Graph::addEdge(const std::string& source, const std::string& destination, int distance) {
     if (distance < 0) {
-        std::cout << "[GRAPH ERROR] Negative road distance (" << distance << ") rejected.\n";
+        std::cerr << "[GRAPH ERROR] Negative road distance (" << distance << ") rejected.\n";
         return false;
     }
 
     if (source == destination) {
-        std::cout << "[GRAPH ERROR] Self-connections are not permitted for roads.\n";
+        std::cerr << "[GRAPH ERROR] Self-connections are not permitted for roads.\n";
         return false;
     }
 
@@ -112,7 +112,7 @@ bool Graph::addEdge(const std::string& source, const std::string& destination, i
     int v = findVertex(destination);
 
     if (u == -1 || v == -1) {
-        std::cout << "[GRAPH ERROR] One or both areas do not exist: "
+        std::cerr << "[GRAPH ERROR] One or both areas do not exist: "
                   << source << ", " << destination << "\n";
         return false;
     }

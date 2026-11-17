@@ -63,7 +63,7 @@ bool Queue::contains(const std::string& id) const {
 // Enqueue request ID - O(1)
 bool Queue::enqueue(const std::string& id) {
     if (contains(id)) {
-        std::cout << "[QUEUE ERROR] Duplicate Request ID '" << id << "' cannot be enqueued.\n";
+        std::cerr << "[QUEUE ERROR] Duplicate Request ID '" << id << "' cannot be enqueued.\n";
         return false;
     }
 

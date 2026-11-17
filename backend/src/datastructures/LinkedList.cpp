@@ -57,7 +57,7 @@ bool LinkedList::contains(const std::string& id) const {
 // Insert at head - O(1)
 bool LinkedList::insertAtHead(const ReliefRequest& req) {
     if (contains(req.id)) {
-        std::cout << "[ERROR] Duplicate Request ID '" << req.id << "' rejected.\n";
+        std::cerr << "[ERROR] Duplicate Request ID '" << req.id << "' rejected.\n";
         return false;
     }
 
@@ -76,7 +76,7 @@ bool LinkedList::insertAtHead(const ReliefRequest& req) {
 // Insert at tail - O(1)
 bool LinkedList::insertAtTail(const ReliefRequest& req) {
     if (contains(req.id)) {
-        std::cout << "[ERROR] Duplicate Request ID '" << req.id << "' rejected.\n";
+        std::cerr << "[ERROR] Duplicate Request ID '" << req.id << "' rejected.\n";
         return false;
     }
 

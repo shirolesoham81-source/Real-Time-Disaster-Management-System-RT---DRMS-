@@ -165,7 +165,7 @@ void PriorityQueue::heapifyDown(int index) {
 // Insert into max-heap - O(log n)
 bool PriorityQueue::insert(const std::string& id, SeverityLevel severity, int peopleCount, long long arrivalSequence) {
     if (contains(id)) {
-        std::cout << "[HEAP ERROR] Duplicate Request ID '" << id << "' cannot be inserted.\n";
+        std::cerr << "[HEAP ERROR] Duplicate Request ID '" << id << "' cannot be inserted.\n";
         return false;
     }
 

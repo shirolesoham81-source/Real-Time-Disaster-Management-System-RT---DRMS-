@@ -28,11 +28,28 @@ Ensure the following tools are installed and accessible in your Windows Command 
 
 ---
 
-## 2. Quick Start Guide (3 Simple Steps)
+## 2. Quick Start Guide
 
 From the project root folder (`FDS CP/`):
 
-### Configure Management Login
+### Option A: One-Click Browser-Based Launch (Recommended)
+Simply execute the launcher script:
+```cmd
+start.bat
+```
+The script automatically:
+1. Verifies the Node.js runtime and MinGW GCC.
+2. Checks whether `backend.exe` exists and compiles it via `backend\build.bat` if missing.
+3. Checks for existing running instances on port 3000 to prevent duplicate servers.
+4. Prompts for management credentials if not already set in the environment.
+5. Launches your default web browser directly to `http://localhost:3000/`.
+6. Starts the Node.js server and spawns the persistent C++ backend engine.
+
+---
+
+### Option B: Manual Step-by-Step Launch
+
+#### 1. Configure Management Login
 Set credentials in the terminal before starting the server. Use private values; do not commit them:
 ```cmd
 set "MGMT_USERNAME=your-management-user"
@@ -40,7 +57,7 @@ set "MGMT_PASSWORD=replace-with-a-private-password"
 ```
 The server exits with an error if either variable is missing. Team Leader accounts must also be provisioned locally in the ignored `backend/data/team_users.txt` file.
 
-### Step 1: Compile the C++ Backend Executable
+#### 2. Compile the C++ Backend Executable
 ```cmd
 backend\build.bat
 ```
@@ -55,14 +72,7 @@ Running: g++ -std=c++11 -Wall -Iinclude src\main.cpp src\datastructures\LinkedLi
 ========================================================
 ```
 
-### Step 2: (Optional) Run C++ Standalone Verification Suites
-To independently verify all data structures, algorithms, services, and file persistence routines:
-```cmd
-backend.exe
-```
-*Expected Result:* 100% of all unit test suites (Part A through Part G) pass with `PASS` indicators.
-
-### Step 3: Launch the Full-Stack Application
+#### 3. Launch the Full-Stack Application
 Start the Node.js bridge server:
 ```cmd
 node server.js
@@ -75,7 +85,7 @@ node server.js
   C++ Bridge IPC  : backend.exe --server via stdin/stdout
 ======================================================================
 [C++ Backend] Loading persistent stores from backend/data/...
-[C++ Backend] Loaded: 5 requests, 2 teams, 2 resources, 3 centers.
+[C++ Backend] Loaded: 36 requests, 4 teams, 2 resources, 10 centers, 4 team locations.
 [C++ Backend Server] Ready and listening on stdin for JSON commands...
 ```
 

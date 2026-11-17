@@ -28,7 +28,11 @@ const activeSessions = new Map();
 // ============================================================================
 // TEAM LEADER AUTHENTICATION & CREDENTIAL MANAGEMENT
 // ============================================================================
-const TEAM_USERS_FILE = path.join(__dirname, 'backend', 'data', 'team_users.txt');
+const DATA_DIR = path.join(__dirname, 'backend', 'data');
+if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+const TEAM_USERS_FILE = path.join(DATA_DIR, 'team_users.txt');
 
 function loadTeamUsers() {
     const users = [];
@@ -100,6 +104,10 @@ let stdoutBuffer = '';
 let isBackendOnline = false;
 
 function initCppBackend() {
+    if (!fs.existsSync(DATA_DIR)) {
+        fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+
     const exePath = path.join(__dirname, 'backend.exe');
     if (!fs.existsSync(exePath)) {
         console.error(`[Bridge Error] backend.exe not found at ${exePath}. Run 'backend\\build.bat' to build it.`);
